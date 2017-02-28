@@ -12,7 +12,7 @@ end
 ################################################################
 
 def message(config, msg)
-  config.vm.provision "shell", privileged: false, inline: "echo \"W4M VM: #{msg}\""
+  config.vm.provision "shell", privileged: false, inline: "echo \"---------------- W4M VM ---------------- #{msg}\""
 end
 
 # MAIN {{{1

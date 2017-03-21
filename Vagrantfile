@@ -1,5 +1,5 @@
 # -*- mode: ruby -*-
-# vi: ft=ruby ts=2 et fdm=marker
+# vi: ft=ruby sw=0 ts=2 et fdm=marker
 
 # Env var enabled {{{1
 ################################################################
@@ -33,7 +33,7 @@ Vagrant.configure(2) do |config|
       vb.memory = "2048"
       vb.gui = envvar_enabled('ENABLE_GUI')
   end
-  
+ 
   # Set AZERTY keyboard layout
   if envvar_enabled('ENABLE_AZERTY')
     message(config, 'SETTING AZERTY KEYBOARD')
@@ -41,9 +41,9 @@ Vagrant.configure(2) do |config|
   else
     message(config, 'SETTING QWERTY KEYBOARD')
   end
-  
+ 
   # Create a directory for conda deps closed to / to avoid placehold/placehold ...
-  config.vm.provision :shell, privileged: true, path: "vagrant-install-conda.sh"
+#  config.vm.provision :shell, privileged: true, path: "vagrant-install-conda.sh"
 
   # Install Galaxy
   # TODO make a script for starting/stoping Galaxy as a service/daemon. Start automatically at startup of vm.
@@ -59,27 +59,52 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
 
   # Start galaxy in daemon mode
-  config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"start", run: "always"
+#  config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"start", run: "always"
 
   # Install Galaxy tools
-  if ENV['TOOL_LIST'].nil?
-      message(config, "NO TOOLS INSTALLATION")
+  if ENV['TOOLS'].nil?
+    message(config, "NO TOOLS INSTALLATION")
   else
-      message(config, "INSTALLING TOOLS FROM #{ENV['TOOL_LIST']}")
-      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"4096", run: "always"
-      config.vm.provision "ansible" do |ansible|
-        ansible.verbose = "v"
-        ansible.extra_vars = { 
-            "tool_list_file" => ENV['TOOL_LIST'], 
-          }
-        ansible.playbook = "tools.yml"  
-      end
-      config.vm.provision :shell, privileged: true, path: "swap_remove.sh", run: "always"
-      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"1024", run: "always"
+    
+    # Set branch
+    if ENV['BRANCH'].nil?
+      branch=develop
+    else
+      branch=ENV['BRANCH']
+    end
+    
+    # Set tools
+    tools = []
+    if ENV['TOOLS'] == 'all'
+      Dir.glob('./vagrant-install-tool-*.sh') { |file| tools.push(file[/^.*vagrant-install-tool-(.*)\.sh$/, 1]) }
+    else
+      tools=ENV['TOOLS'].split(/ */)
+    end
+    
+    # Loop on all tools
+    tools.each do |tool|
+    
+      message(config, "INSTALLING TOOL #{tool} FROM BRANCH #{branch}")
+      config.vm.provision :shell, privileged: false, path: "vagrant-install-tool-#{tool}.sh", args:branch, run: "always"
+    end
+#      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"4096", run: "always"
+#      config.vm.provision "ansible" do |ansible|
+#        ansible.verbose = "v"
+#        ansible.extra_vars = { 
+#            "tool_list_file" => ENV['TOOL_LIST'], 
+#          }
+#        ansible.playbook = "tools.yml"  
+#      end
+#      config.vm.provision :shell, privileged: true, path: "swap_remove.sh", run: "always"
+#      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"1024", run: "always"
 
-      # ReStart galaxy in daemon mode
-      # XXX The tools ansible role should restart Galaxy
-      config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"restart", run: "always"
+    # ReStart galaxy in daemon mode
+    # XXX The tools ansible role should restart Galaxy
+#    config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"restart", run: "always"
   end
+
+  # Start galaxy in daemon mode
+  message(config, "START GALAXY IN DAEMON MODE")
+  config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"start", run: "always"
 
 end

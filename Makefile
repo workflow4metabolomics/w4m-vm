@@ -1,14 +1,15 @@
-DEV_TOOLS="tools-playbook-list/tool_list_LCMS_dev.yaml"
-PROD_TOOLS="tools-playbook-list/tool_list_LCMS.yaml"
+export TOOLS=all
+export BRANCH=develop
 
-all:
+all: dev
 
+notools: TOOLS=
 notools: build
 
-dev: TOOL_LIST=$(DEV_TOOLS)
+dev: BRANCH=develop
 dev: build
 
-prod: TOOL_LIST=$(PROD_TOOLS)
+prod: BRANCH=master
 prod: build
 
 guidev: ENABLE_GUI=true

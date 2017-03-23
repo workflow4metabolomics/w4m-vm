@@ -81,6 +81,10 @@ Vagrant.configure(2) do |config|
       tools=ENV['TOOLS'].split(/ */)
     end
     
+    # Install requirements
+    config.vm.provision :shell, privileged: false, path: "vagrant-tool-installation-requirements.sh", run: "always"
+    
+    
     # Loop on all tools
     tools.each do |tool|
     

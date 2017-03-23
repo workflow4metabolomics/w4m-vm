@@ -33,6 +33,9 @@ guiprodaz: guiprod
 build:
 	vagrant up
 
+update:
+	vagrant box update
+
 clean:
 	vagrant halt
 	vagrant destroy -f

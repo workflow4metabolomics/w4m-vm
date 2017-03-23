@@ -46,12 +46,12 @@ Vagrant.configure(2) do |config|
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "galaxyserver.yml" 
   end
-
   config.vm.provision "file", source: "w4m-config/config/tool_conf.xml", destination: "galaxy/config/tool_conf.xml"
   config.vm.provision "file", source: "w4m-config/config/tool_sheds_conf.xml", destination: "galaxy/config/tool_sheds_conf.xml"
   config.vm.provision "file", source: "w4m-config/config/dependency_resolvers_conf.xml", destination: "galaxy/config/dependency_resolvers_conf.xml"
   config.vm.provision "file", source: "w4m-config/static/welcome.html", destination: "galaxy/static/welcome.html"
   config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
+  config.vm.provision :shell, privileged: true, path: "vagrant-install-galaxy-service.sh"
 
   # Install Galaxy tools
   if ENV['TOOLS'].nil?
@@ -74,18 +74,18 @@ Vagrant.configure(2) do |config|
     end
     
     # Install requirements
-    config.vm.provision :shell, privileged: false, path: "vagrant-tool-installation-requirements.sh", run: "always"
+    config.vm.provision :shell, privileged: false, path: "vagrant-tool-installation-requirements.sh"
     
     # Loop on all tools
     tools.each do |tool|
     
       message(config, "INSTALLING TOOL #{tool} FROM BRANCH #{branch}")
-      config.vm.provision :shell, privileged: false, path: "vagrant-install-tool-#{tool}.sh", args:branch, run: "always"
+      config.vm.provision :shell, privileged: false, path: "vagrant-install-tool-#{tool}.sh", args:branch
     end
   end
 
   # Start galaxy in daemon mode
   message(config, "START GALAXY IN DAEMON MODE")
-  config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"start", run: "always"
+  config.vm.provision :shell, privileged: true, inline:"service galaxy start"
 
 end

@@ -42,14 +42,9 @@ Vagrant.configure(2) do |config|
     message(config, 'SETTING QWERTY KEYBOARD')
   end
  
-  # Create a directory for conda deps closed to / to avoid placehold/placehold ...
-#  config.vm.provision :shell, privileged: true, path: "vagrant-install-conda.sh"
-
   # Install Galaxy
-  # TODO make a script for starting/stoping Galaxy as a service/daemon. Start automatically at startup of vm.
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "galaxyserver.yml" 
-#    ansible.sudo = true
   end
 
   config.vm.provision "file", source: "w4m-config/config/tool_conf.xml", destination: "galaxy/config/tool_conf.xml"
@@ -57,9 +52,6 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: "w4m-config/config/dependency_resolvers_conf.xml", destination: "galaxy/config/dependency_resolvers_conf.xml"
   config.vm.provision "file", source: "w4m-config/static/welcome.html", destination: "galaxy/static/welcome.html"
   config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
-
-  # Start galaxy in daemon mode
-#  config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"start", run: "always"
 
   # Install Galaxy tools
   if ENV['TOOLS'].nil?
@@ -84,27 +76,12 @@ Vagrant.configure(2) do |config|
     # Install requirements
     config.vm.provision :shell, privileged: false, path: "vagrant-tool-installation-requirements.sh", run: "always"
     
-    
     # Loop on all tools
     tools.each do |tool|
     
       message(config, "INSTALLING TOOL #{tool} FROM BRANCH #{branch}")
       config.vm.provision :shell, privileged: false, path: "vagrant-install-tool-#{tool}.sh", args:branch, run: "always"
     end
-#      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"4096", run: "always"
-#      config.vm.provision "ansible" do |ansible|
-#        ansible.verbose = "v"
-#        ansible.extra_vars = { 
-#            "tool_list_file" => ENV['TOOL_LIST'], 
-#          }
-#        ansible.playbook = "tools.yml"  
-#      end
-#      config.vm.provision :shell, privileged: true, path: "swap_remove.sh", run: "always"
-#      config.vm.provision :shell, privileged: true, path: "swap_create.sh", args:"1024", run: "always"
-
-    # ReStart galaxy in daemon mode
-    # XXX The tools ansible role should restart Galaxy
-#    config.vm.provision :shell, privileged: false, path: "vagrant-run-galaxy.sh", args:"restart", run: "always"
   end
 
   # Start galaxy in daemon mode

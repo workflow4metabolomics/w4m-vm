@@ -13,8 +13,8 @@
 SCRIPT=/home/vagrant/galaxy/run.sh
 RUNAS=vagrant
 
-PIDFILE=/var/run/galaxy.pid
-LOGFILE=/var/log/galaxy.log
+PIDFILE=/home/vagrant/galaxy/paster.pid
+LOGFILE=/home/vagrant/galaxy/paster.log
 
 # Start {{{1
 ################################################################
@@ -43,6 +43,17 @@ stop() {
 	echo 'Service stopped' >&2
 }
 
+# Status {{{1
+################################################################
+
+status() {
+	if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE); then
+		echo 'Service is currently running with PID '$(cat $PIDFILE)'.' >&2
+	else
+		echo 'Service is stopped.' >&2
+	fi
+}
+
 # Main {{{1
 ################################################################
 
@@ -50,5 +61,6 @@ case "$1" in
 	start) start ;;
 	stop) stop ;;
 	retart) stop ; start ;;
-	*) echo "Usage: $0 {start|stop|restart}"
+	status) status ;;
+	*) echo "Usage: $0 {start|stop|restart|status}"
 esac

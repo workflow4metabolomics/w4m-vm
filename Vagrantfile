@@ -51,7 +51,8 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: "w4m-config/config/dependency_resolvers_conf.xml", destination: "galaxy/config/dependency_resolvers_conf.xml"
   config.vm.provision "file", source: "w4m-config/static/welcome.html", destination: "galaxy/static/welcome.html"
   config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
-  config.vm.provision :shell, privileged: true, path: "vagrant-install-galaxy-service.sh"
+  config.vm.provision "file", source: "galaxy_service.sh", destination: "galaxy_service.sh"
+  config.vm.provision :shell, privileged: true, path: "vagrant-install-service.sh"
 
   # Install Galaxy tools
   if ENV['TOOLS'].nil?

@@ -60,7 +60,7 @@ status() {
 case "$1" in
 	start) start ;;
 	stop) stop ;;
-	retart) stop ; start ;;
+	restart) stop ; start ;;
 	status) status ;;
 	*) echo "Usage: $0 {start|stop|restart|status}"
 esac

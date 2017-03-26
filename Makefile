@@ -1,5 +1,5 @@
-DEV_TOOLS="tools-playbook-list/tool_list_LCMS_dev.yaml"
-PROD_TOOLS="tools-playbook-list/tool_list_LCMS.yaml"
+DEV_TOOLS="w4m-config/tool_list_LCMS_dev.yaml"
+PROD_TOOLS="w4m-config/tool_list_LCMS.yaml"
 
 all:
 

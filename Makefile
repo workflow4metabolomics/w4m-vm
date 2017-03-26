@@ -1,5 +1,8 @@
-DEV_TOOLS="w4m-config/tool_list_LCMS_dev.yaml"
-PROD_TOOLS="w4m-config/tool_list_LCMS.yaml"
+DEV_TOOLS=$(PWD)/w4m-config/tool_list_LCMS_dev.yaml
+PROD_TOOLS=$(PWD)/w4m-config/tool_list_LCMS.yaml
+export ENABLE_GUI=false
+export ENABLE_AZERTY=false
+export TOOL_LIST=
 
 all:
 

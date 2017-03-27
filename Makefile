@@ -1,5 +1,7 @@
 export TOOLS=all
 export BRANCH=develop
+export ENABLE_GUI=false
+export ENABLE_AZERTY=false
 
 all: dev
 

@@ -2,6 +2,9 @@ export TOOLS=all
 export BRANCH=develop
 export ENABLE_GUI=false
 export ENABLE_AZERTY=false
+DEV_TOOLS=$(PWD)/w4m-config/tool_list_LCMS_dev.yaml
+PROD_TOOLS=$(PWD)/w4m-config/tool_list_LCMS.yaml
+export TOOL_LIST=
 
 all: dev
 

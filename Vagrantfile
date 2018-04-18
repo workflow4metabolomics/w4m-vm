@@ -66,7 +66,7 @@ Vagrant.configure(2) do |config|
       branch=ENV['BRANCH']
     end
     
-    # Set tools
+    # Set tools list
     tools = []
     if ENV['TOOLS'] == 'all'
       Dir.glob('./vagrant-install-tool-*.sh') { |file| tools.push(file[/^.*vagrant-install-tool-(.*)\.sh$/, 1]) }

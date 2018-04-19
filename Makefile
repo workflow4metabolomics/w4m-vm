@@ -1,5 +1,4 @@
 export TOOLS=all
-export BRANCH=develop
 export ENABLE_GUI=false
 export ENABLE_AZERTY=false
 DEV_TOOLS=$(PWD)/w4m-config/tool_list_LCMS_dev.yaml
@@ -11,10 +10,10 @@ all: dev
 notools: TOOLS=
 notools: build
 
-dev: BRANCH=develop
+dev: VERSION=dev
 dev: build
 
-prod: BRANCH=master
+prod: VERSION=prod
 prod: build
 
 guidev: ENABLE_GUI=true

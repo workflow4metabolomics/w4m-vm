@@ -105,7 +105,10 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: "w4m-config/static/welcome.html", destination: "galaxy/static/welcome.html"
   config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
   config.vm.provision "file", source: "galaxy_service.sh", destination: "galaxy_service.sh"
-  config.vm.provision :shell, privileged: true, path: "vagrant-install-service.sh"
+  for runlevel in [2, 3, 5]
+    config.vm.provision :shell, privileged: true, inline: "cp galaxy_service.sh /etc/init.d/galaxy"
+    config.vm.provision :shell, privileged: true, inline: "ln -s ../init.d/galaxy /etc/rc#{runlevel}.d/S99galaxy"
+  end
 
   # Install Galaxy tools
   if ENV['TOOLS'].nil?

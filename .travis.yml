@@ -3,4 +3,4 @@ before_install:
 
 script:
     - VBoxManage --version
-	- ./build-vm --name w4mdev-qwerty --halt
+    - ./build-vm --name w4mdev-qwerty --halt

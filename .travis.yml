@@ -1,5 +1,5 @@
 before_install:
-    - sudo apt-get install -y virtualbox vagrant wget
+    - sudo apt-get install -y virtualbox virtualbox-dkms linux-headers-generic vagrant wget
 
 script:
     - VBoxManage --version

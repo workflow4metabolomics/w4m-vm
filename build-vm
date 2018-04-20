@@ -70,7 +70,7 @@ vagrant up ${W4MVM_NAME}
 
 # Wait for Galaxy to be up and running
 if [[ $WAIT == yes || $HALT == yes ]] ; then
-	wget=$(which -s wget)
+	wget=$(which wget)
 	if [[ $? -ne 0 ]] ; then
 		echo "You need to install wget in order to wait for Galaxy readiness." >&2
 		exit 1

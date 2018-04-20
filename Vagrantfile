@@ -78,24 +78,34 @@ Vagrant.configure(2) do |config|
   # Box
   config.vm.box = "ubuntu/trusty64"
   config.vm.hostname = "w4m"
+  if ! ENV['W4MVM_NAME'].nil?
+    vm_name = ENV['W4MVM_NAME']
+    provision_message(config, "SETTING VM NAME AS \"#{vm_name}\"")
+    config.vm.define vm_name
+    config.vm.provider :virtualbox do |vb|
+      vb.name = vm_name
+    end
+  end
 
   # Network
   config.vm.network :forwarded_port, guest: 8080, host: 8080
 
   # Set virtual memory
-  provision_message(config, envvar_enabled('ENABLE_GUI') ? 'GUI ENABLED' : 'GUI DISABLED')
+  provision_message(config, envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE')
   config.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
-      vb.gui = envvar_enabled('ENABLE_GUI')
+      vb.gui = envvar_enabled('W4MVM_SHOW')
   end
  
-  # Set AZERTY keyboard layout
-  if envvar_enabled('ENABLE_AZERTY')
-    provision_message(config, 'SETTING AZERTY KEYBOARD')
+  # Set keyboard layout
+  keyboard = "qwerty"
+  if ! ENV['W4MVM_NAME'].nil? and ! ENV['W4MVM_NAME'].empty?
+    keybaord = ENV['W4MVM_NAME']
+  end
+  provision_message(config, "SETTING KEYBOARD as #{keyboard}")
+  if keyboard != 'qwerty'
     config.vm.provision :shell, privileged: true, inline: "sed -i -e 's/^exit 0/loadkeys fr ; &/' /etc/rc.local"
     restart_required = true
-  else
-    provision_message(config, 'SETTING QWERTY KEYBOARD')
   end
  
   # Install Galaxy
@@ -114,9 +124,13 @@ Vagrant.configure(2) do |config|
   end
 
   # Install Galaxy tools
-  if ENV['TOOLS'].nil?
+  if ENV['W4MVM_TOOLS'].nil?
     provision_message(config, "NO TOOLS INSTALLATION")
   else
+    
+    # Install requirements
+    provision_message(config, "INSTALL xmlstarlet")
+    config.vm.provision "shell", privileged: true, inline: "apt-get install -y xmlstarlet"
     
     # Set branch
     if ENV['VERSION'].nil?
@@ -133,10 +147,13 @@ Vagrant.configure(2) do |config|
     
     # Set tools list
     tools = []
-    if ENV['TOOLS'] == 'all'
+    if ENV['W4MVM_TOOLS'] == 'all'
+      provision_message(config, "INSTALLATION OF ALL TOOLS")
       tools = get_tool_names(tools_list)
     else
-      tools = ENV['TOOLS'].split(/ */)
+      tools = ENV['W4MVM_TOOLS']
+      provision_message(config, "INSTALLATION OF TOOLS #{tools}")
+      tools = tools.split(/ */)
       all_tools = get_tool_names(tools_list)
       
       # Check tools
@@ -146,10 +163,6 @@ Vagrant.configure(2) do |config|
         end
       end
     end
-    
-    # Install requirements
-    provision_message(config, "INSTALL xmlstarlet")
-    config.vm.provision "shell", privileged: true, inline: "apt-get install -y xmlstarlet"
     
     # Loop on all tools
     tools_list['tools'].each do |tool|

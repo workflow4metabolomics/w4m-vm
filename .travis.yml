@@ -2,4 +2,4 @@ before_install:
     - sudo apt-get install -y virtualbox vagrant
 
 script:
-    - true
+    - make

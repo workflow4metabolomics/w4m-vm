@@ -22,12 +22,6 @@ guidev: dev
 guiprod: ENABLE_GUI=true
 guiprod: prod
 
-devaz: ENABLE_AZERTY=true
-devaz: dev
-
-prodaz: ENABLE_AZERTY=true
-prodaz: prod
-
 guidevaz: ENABLE_AZERTY=true
 guidevaz: guidev
 

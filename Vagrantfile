@@ -73,6 +73,8 @@ end
 
 Vagrant.configure(2) do |config|
 
+  restart_required = false
+  
   # Box
   config.vm.box = "ubuntu/trusty64"
   config.vm.hostname = "w4m"
@@ -90,7 +92,8 @@ Vagrant.configure(2) do |config|
   # Set AZERTY keyboard layout
   if envvar_enabled('ENABLE_AZERTY')
     provision_message(config, 'SETTING AZERTY KEYBOARD')
-    config.vm.provision :shell, privileged: true, path: "vagrant-azerty.sh"
+    config.vm.provision :shell, privileged: true, inline: "sed -i -e 's/^exit 0/loadkeys fr ; &/' /etc/rc.local"
+    restart_required = true
   else
     provision_message(config, 'SETTING QWERTY KEYBOARD')
   end
@@ -184,8 +187,14 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  # Start galaxy in daemon mode
-  provision_message(config, "START GALAXY IN DAEMON MODE")
-  config.vm.provision :shell, privileged: true, inline:"service galaxy start"
+  # Finalize
+  if restart_required
+    # Restart machine
+    config.vm.provision :shell, privileged: true, inline:"shutdown -r now"
+  else
+    # Start galaxy in daemon mode
+    provision_message(config, "START GALAXY IN DAEMON MODE")
+    config.vm.provision :shell, privileged: true, inline:"service galaxy start"
+  end
 
 end

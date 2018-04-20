@@ -1,0 +1,90 @@
+#!/bin/bash
+# vi: fdm=marker
+
+# Constants {{{1
+################################################################
+
+export W4MVM_KEYBOARD=qwerty
+export W4MVM_SHOW=no
+export W4MVM_VERSION=dev
+export W4MVM_NAME=
+export W4MVM_TOOLS=all
+HALT=no
+WAIT=no
+
+# Print help {{{1
+################################################################
+
+function print_help {
+	echo "Usage: build-vm [options]"
+	echo
+	echo "Builds the W4M virtual machine."
+	echo
+	echo "Options:"
+	echo "   -a, --azerty         Set AZERTY keyboard. The default keyboard is QWERTY."
+	echo "   -H, --halt           Halt the machine after building it."
+	echo "   -h, --help           Print this help message."
+	echo "   -n, --name           Set the name of the virtual machine. If unset, Vagrant will set a semi-random name itself."
+	echo "   -p, --prod           Builds a production machine, using official released versions of tools. By default the branch used for developing is used to extract tool code."
+	echo "   -s, --show           Show VM screen. By default it is hidden."
+	echo "   -w, --wait           Wait for Galaxy to be up."
+}
+
+# Read args {{{1
+################################################################
+
+function read_args {
+
+	local args="$*" # save arguments for debugging purpose
+	
+	# Read options
+	while true ; do
+		case $1 in
+			-a|--azerty)        W4MVM_KEYBOARD=azerty ;;
+			-H|--halt)          HALT=yes ;;
+			-h|--help)          print_help ; exit 0 ;;
+			-n|--name)          W4MVM_NAME="$2" ; shift ;;
+			-p|--prod)          W4MVM_VERSION=prod ;;
+			-s|--show)          W4MVM_SHOW=yes ;;
+			-t|--tool)          W4MVM_TOOLS="$2" ; shift ;;
+			-w|--wait)          WAIT=yes ;;
+			-) error "Illegal option $1." ;;
+			--) error "Illegal option $1." ;;
+			--*) error "Illegal option $1." ;;
+			-?) error "Unknown option $1." ;;
+			-[^-]*) split_opt=$(echo $1 | sed 's/^-//' | sed 's/\([a-zA-Z]\)/ -\1/g') ; set -- $1$split_opt "${@:2}" ;;
+			*) break
+		esac
+		shift
+	done
+	shift $((OPTIND - 1))
+}
+
+# MAIN {{{1
+################################################################
+
+read_args "$@"
+
+# Build and start machine
+vagrant up ${W4MVM_NAME}
+
+# Wait for Galaxy to be up and running
+if [[ $WAIT == yes || $HALT == yes ]] ; then
+	wget=$(which wget)
+	if [[ $? -ne 0 ]] ; then
+		echo "You need to install wget in order to wait for Galaxy readiness." >&2
+		exit 1
+	fi
+
+	while true ; do
+		if wget -O galaxy_page.html http://localhost:8080 ; then
+			rm galaxy_page.html
+			break
+		fi
+	done
+fi
+
+# Halt machine
+if [[ $HALT == yes ]] ; then
+	vagrant halt ${W4MVM_NAME}
+fi

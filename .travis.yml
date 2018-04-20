@@ -1,5 +1,5 @@
 before_install:
-    - sudo apt-get install -y virtualbox vagrant
+    - sudo apt-get install -y virtualbox vagrant wget
 
 script:
     - make

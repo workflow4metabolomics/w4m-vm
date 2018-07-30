@@ -65,6 +65,9 @@ function read_args {
 
 read_args "$@"
 
+# Remove machine of the same name if it exists
+vagrant destroy -f ${W4MVM_NAME}
+
 # Build and start machine
 vagrant up ${W4MVM_NAME}
 

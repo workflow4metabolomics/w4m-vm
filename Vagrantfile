@@ -99,8 +99,8 @@ Vagrant.configure(2) do |config|
  
   # Set keyboard layout
   keyboard = "qwerty"
-  if ! ENV['W4MVM_NAME'].nil? and ! ENV['W4MVM_NAME'].empty?
-    keybaord = ENV['W4MVM_NAME']
+  if ! ENV['W4MVM_KEYBOARD'].nil? and ! ENV['W4MVM_KEYBOARD'].empty?
+    keyboard = ENV['W4MVM_KEYBOARD']
   end
   provision_message(config, "SETTING KEYBOARD as #{keyboard}")
   if keyboard != 'qwerty'

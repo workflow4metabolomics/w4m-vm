@@ -153,7 +153,7 @@ Vagrant.configure(2) do |config|
     else
       tools = ENV['W4MVM_TOOLS']
       provision_message(config, "INSTALLATION OF TOOLS #{tools}")
-      tools = tools.split(/ */)
+      tools = tools.split(/ +/)
       all_tools = get_tool_names(tools_list)
       
       # Check tools

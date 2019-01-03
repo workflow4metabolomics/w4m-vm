@@ -30,7 +30,7 @@ end
 
 def load_tools_list()
   
-  tools_list_file = "w4m-config/tool_list_LCMS.yaml"
+  tools_list_file = "w4m-config/tool_list.yaml"
   message("LOAD tools list #{tools_list_file}")
   tools_list = YAML.load_file(tools_list_file)
   

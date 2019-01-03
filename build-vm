@@ -66,13 +66,25 @@ function read_args {
 read_args "$@"
 
 # Remove machine of the same name if it exists
+echo
+echo "****************************************************************"
+echo "Destroy existing machine ${W4MVM_NAME}"
+echo
 vagrant destroy -f ${W4MVM_NAME}
 
 # Build and start machine
+echo
+echo "****************************************************************"
+echo "Build machine ${W4MVM_NAME}"
+echo
 vagrant up ${W4MVM_NAME}
 
-# Wait for Galaxy to be up and running
+# Wait for Galaxy
 if [[ $WAIT == yes || $HALT == yes ]] ; then
+	echo
+	echo "****************************************************************"
+	echo "Wait for Galaxy to be up and running"
+	echo
 	wget=$(which wget)
 	if [[ $? -ne 0 ]] ; then
 		echo "You need to install wget in order to wait for Galaxy readiness." >&2
@@ -89,5 +101,9 @@ fi
 
 # Halt machine
 if [[ $HALT == yes ]] ; then
+	echo
+	echo "****************************************************************"
+	echo "Halt machine ${W4MVM_NAME}"
+	echo
 	vagrant halt ${W4MVM_NAME}
 fi

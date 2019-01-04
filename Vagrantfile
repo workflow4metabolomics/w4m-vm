@@ -13,16 +13,19 @@ end
 # Message {{{1
 ################################################################
 
-def message(msg)
-  puts "---------------- W4M VM ---------------- #{msg}"
-end
+def message(msg:, config: nil, provision: false)
 
+  # Print now
+  if provision
+    puts "[PROVISIONING] #{msg}"
+  else
+    puts "[INFO] #{msg}"
+  end
 
-# Provision message {{{1
-################################################################
-
-def provision_message(config, msg)
-  config.vm.provision "shell", privileged: false, inline: "echo \"---------------- W4M VM ---------------- #{msg}\""
+  # Print when provisioning
+  if provision and not config.nil?
+    config.vm.provision "shell", privileged: false, inline: "echo \"---------------- W4M VM ---------------- #{msg}\""
+  end
 end
 
 # Load tools list {{{1
@@ -30,8 +33,8 @@ end
 
 def load_tools_list()
   
-  tools_list_file = "w4m-config/tool_list_LCMS.yaml"
-  message("LOAD tools list #{tools_list_file}")
+  tools_list_file = "w4m-config/tool_list.yaml"
+  message(msg: "LOAD tools list #{tools_list_file}")
   tools_list = YAML.load_file(tools_list_file)
   
   return tools_list
@@ -58,57 +61,43 @@ def get_tool_names(tools_list)
     name = tool['name']
       
     if tool.key?('github')
-      message("Selecting tool #{name}.")
+      message(msg:"Loading information for tool #{name}.")
       tools.push(name)
     else
-      message("CAUTION no GitHub repository for tool #{name}.")
+      message(msg:"CAUTION no GitHub repository for tool #{name}. This tool is impossible to install.")
     end
   end
   
   return tools
 end
 
-# MAIN {{{1
+# Set keyboard layout {{{1
 ################################################################
 
-Vagrant.configure(2) do |config|
-
+def set_keyboard_layout(config)
+  
   restart_required = false
   
-  # Box
-  config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "w4m"
-  if ! ENV['W4MVM_NAME'].nil?
-    vm_name = ENV['W4MVM_NAME']
-    provision_message(config, "SETTING VM NAME AS \"#{vm_name}\"")
-    config.vm.define vm_name
-    config.vm.provider :virtualbox do |vb|
-      vb.name = vm_name
-    end
-  end
-
-  # Network
-  config.vm.network :forwarded_port, guest: 8080, host: 8080
-
-  # Set virtual memory
-  provision_message(config, envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE')
-  config.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
-      vb.gui = envvar_enabled('W4MVM_SHOW')
-  end
- 
-  # Set keyboard layout
   keyboard = "qwerty"
   if ! ENV['W4MVM_KEYBOARD'].nil? and ! ENV['W4MVM_KEYBOARD'].empty?
     keyboard = ENV['W4MVM_KEYBOARD']
   end
-  provision_message(config, "SETTING KEYBOARD as #{keyboard}")
+  message(config: config, msg: "Setting keyboard as #{keyboard}.", provision: true)
   if keyboard != 'qwerty'
     config.vm.provision :shell, privileged: true, inline: "sed -i -e 's/^exit 0/loadkeys fr ; &/' /etc/rc.local"
     restart_required = true
   end
- 
-  # Install Galaxy
+  
+  return restart_required
+end
+
+# Install Galaxy {{{1
+################################################################
+
+def install_galaxy(config)
+  
+  message(config: config, msg: "Installing Galaxy.", provision: true)
+  
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "galaxyserver.yml" 
   end
@@ -122,14 +111,18 @@ Vagrant.configure(2) do |config|
     config.vm.provision :shell, privileged: true, inline: "cp galaxy_service.sh /etc/init.d/galaxy"
     config.vm.provision :shell, privileged: true, inline: "ln -s ../init.d/galaxy /etc/rc#{runlevel}.d/S99galaxy"
   end
+end
 
-  # Install Galaxy tools
+# Install Galaxy tools {{{1
+################################################################
+
+def install_galaxy_tools(config)
   if ENV['W4MVM_TOOLS'].nil?
-    provision_message(config, "NO TOOLS INSTALLATION")
+    message(config: config, msg: "NO TOOLS INSTALLATION", provision: true)
   else
     
     # Install requirements
-    provision_message(config, "INSTALL xmlstarlet")
+    message(config: config, msg: "INSTALL xmlstarlet", provision: true)
     config.vm.provision "shell", privileged: true, inline: "apt-get install -y xmlstarlet"
     
     # Set branch
@@ -148,12 +141,12 @@ Vagrant.configure(2) do |config|
     # Set tools list
     tools = []
     if ENV['W4MVM_TOOLS'] == 'all'
-      provision_message(config, "INSTALLATION OF ALL TOOLS")
+      message(config: config, msg: "INSTALLATION OF ALL TOOLS", provision: true)
       tools = get_tool_names(tools_list)
     else
       tools = ENV['W4MVM_TOOLS']
-      provision_message(config, "INSTALLATION OF TOOLS #{tools}")
-      tools = tools.split(/ */)
+      message(config: config, msg: "INSTALLATION OF TOOLS #{tools}", provision: true)
+      tools = tools.split(/ +/)
       all_tools = get_tool_names(tools_list)
       
       # Check tools
@@ -169,7 +162,7 @@ Vagrant.configure(2) do |config|
       name = tool['name']
     
       if tools.include?(name)
-        provision_message(config, "INSTALL tool #{name} in #{version} version")
+        message(config: config, msg: "Install version #{version} of tool #{name}.", provision: true)
         
         # Clone GitHub repos
         if not tool['github'].key?(version)
@@ -195,10 +188,54 @@ Vagrant.configure(2) do |config|
         tool_conf_old = "galaxy/config/tool_conf.xml.old"
         config.vm.provision "shell", privileged: false, inline: "cp #{tool_conf} #{tool_conf_old}"
         config.vm.provision "shell", privileged: false, inline: "xmlstarlet ed --subnode \"/toolbox/section[@id='#{section_id}']\" --type elem -n tool #{tool_conf_old} | xmlstarlet ed --insert \"/toolbox/section[@id='#{section_id}']/tool[not(@file)]\" --type attr -n file -v #{name}/#{xml} >#{tool_conf}"
-        #config.vm.provision :shell, privileged: false, path: "vagrant-install-tool-#{name}.sh", args:branch
+        
+        # Enable HTML output rendering
+        if tool.key?('html_output') and tool['html_output']
+          message(config: config, msg: "Allow rendering of HTML for tool #{name}.", provision: true)
+          config.vm.provision "shell", privileged: false, inline: "echo #{name} >> galaxy/config/sanitize_whitelist.txt"
+        end
       end
     end
   end
+end
+
+# MAIN {{{1
+################################################################
+
+Vagrant.configure(2) do |config|
+
+  restart_required = false
+  
+  # Box
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.hostname = "w4m"
+  if ! ENV['W4MVM_NAME'].nil?
+    vm_name = ENV['W4MVM_NAME']
+    message(config: config, msg: "SETTING VM NAME AS \"#{vm_name}\"", provision: true)
+    config.vm.define vm_name
+    config.vm.provider :virtualbox do |vb|
+      vb.name = vm_name
+    end
+  end
+
+  # Network
+  config.vm.network :forwarded_port, guest: 8080, host: 8080
+
+  # Set virtual memory
+  message(config: config, msg: envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE', provision: true)
+  config.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.gui = envvar_enabled('W4MVM_SHOW')
+  end
+ 
+  # Set keyboard layout
+  restart_required = set_keyboard_layout(config)
+ 
+  # Install Galaxy
+  install_galaxy(config)
+
+  # Install Galaxy tools
+  install_galaxy_tools(config)
 
   # Finalize
   if restart_required
@@ -206,7 +243,7 @@ Vagrant.configure(2) do |config|
     config.vm.provision :shell, privileged: true, inline:"shutdown -r now"
   else
     # Start galaxy in daemon mode
-    provision_message(config, "START GALAXY IN DAEMON MODE")
+    message(config: config, msg: "START GALAXY IN DAEMON MODE", provision: true)
     config.vm.provision :shell, privileged: true, inline:"service galaxy start"
   end
 

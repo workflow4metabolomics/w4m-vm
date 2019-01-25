@@ -126,10 +126,10 @@ def install_galaxy_tools(config)
     config.vm.provision "shell", privileged: true, inline: "apt-get install -y xmlstarlet"
     
     # Set branch
-    if ENV['W4M_VERSION'].nil?
+    if ENV['W4MVM_VERSION'].nil?
       version='dev'
     else
-      version=ENV['W4M_VERSION']
+      version=ENV['W4MVM_VERSION']
       if version != 'dev' and version != 'prod'
         abort("Unknown version '#{version}' for tools.")
       end

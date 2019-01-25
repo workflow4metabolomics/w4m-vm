@@ -162,7 +162,6 @@ def install_galaxy_tools(config)
       name = tool['name']
     
       if tools.include?(name)
-        message(config: config, msg: "Install version #{version} of tool #{name}.", provision: true)
         
         # Clone GitHub repos
         if not tool['github'].key?(version)
@@ -173,6 +172,7 @@ def install_galaxy_tools(config)
           abort("No GitHub repository specified for tool #{name}.")
         end
         repos = tool['github']['repos']
+        message(config: config, msg: "Install version #{version} (branch/tag #{branch}) of tool #{name}.", provision: true)
         config.vm.provision "shell", privileged: false, inline: "git clone -b #{branch} #{repos} galaxy/tools/#{name}"
         
         # Edit tool conf file

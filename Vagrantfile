@@ -117,7 +117,7 @@ end
 ################################################################
 
 def install_galaxy_tools(config)
-  if ENV['W4MVM_TOOLS'].nil?
+  if ENV['W4MVM_TOOLS'].nil? or ENV['W4MVM_TOOLS'] == ''
     message(config: config, msg: "NO TOOLS INSTALLATION", provision: true)
   else
     
@@ -204,47 +204,50 @@ end
 
 Vagrant.configure(2) do |config|
 
-  restart_required = false
-  
-  # Box
-  config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "w4m"
-  if ! ENV['W4MVM_NAME'].nil?
-    vm_name = ENV['W4MVM_NAME']
-    message(config: config, msg: "SETTING VM NAME AS \"#{vm_name}\"", provision: true)
-    config.vm.define vm_name
-    config.vm.provider :virtualbox do |vb|
-      vb.name = vm_name
+  for vm_name in ['w4mdev-qwerty'] #, 'w4mdev-azerty', 'w4mprod-qwerty', 'w4mprod-azerty']
+
+    config.vm.define vm_name do |w4m|
+      
+      restart_required = false
+    
+      w4m.vm.box = "ubuntu/bionic64"
+      w4m.vm.hostname = "w4m"
+      
+      message(config: w4m, msg: envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE', provision: true)
+      w4m.vm.provider :virtualbox do |vb|
+        vb.name = vm_name
+        vb.memory = "2048"
+        vb.gui = envvar_enabled('W4MVM_SHOW')
+      end
+      w4m.vm.provision :ansible do |ansible|
+        ansible.extra_vars = {
+          ansible_python_interpreter: "python3"
+        }
+        ansible.playbook = "provisioning/playbook.yml"
+      end
+
+      # Network
+      w4m.vm.network :forwarded_port, guest: 8080, host: 8080
+
+      # Set keyboard layout
+      restart_required = set_keyboard_layout(w4m)
+     
+      # Install Galaxy
+    #  install_galaxy(w4m)
+
+      # Install Galaxy tools
+      install_galaxy_tools(w4m)
+
+      # Finalize
+      if restart_required
+        # Restart machine
+        w4m.vm.provision :shell, privileged: true, inline:"shutdown -r now"
+      else
+        # Start galaxy in daemon mode
+        message(config: w4m, msg: "START GALAXY IN DAEMON MODE", provision: true)
+#        w4m.vm.provision :shell, privileged: true, inline:"service galaxy start"
+      end
+
     end
   end
-
-  # Network
-  config.vm.network :forwarded_port, guest: 8080, host: 8080
-
-  # Set virtual memory
-  message(config: config, msg: envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE', provision: true)
-  config.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
-      vb.gui = envvar_enabled('W4MVM_SHOW')
-  end
- 
-  # Set keyboard layout
-  restart_required = set_keyboard_layout(config)
- 
-  # Install Galaxy
-  install_galaxy(config)
-
-  # Install Galaxy tools
-  install_galaxy_tools(config)
-
-  # Finalize
-  if restart_required
-    # Restart machine
-    config.vm.provision :shell, privileged: true, inline:"shutdown -r now"
-  else
-    # Start galaxy in daemon mode
-    message(config: config, msg: "START GALAXY IN DAEMON MODE", provision: true)
-    config.vm.provision :shell, privileged: true, inline:"service galaxy start"
-  end
-
 end

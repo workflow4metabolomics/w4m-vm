@@ -7,8 +7,9 @@
 export W4MVM_KEYBOARD=qwerty
 export W4MVM_SHOW=no
 export W4MVM_VERSION=dev
-export W4MVM_NAME=
 export W4MVM_TOOLS=all
+W4MVM_NAME=
+DESTROY=no
 HALT=no
 WAIT=no
 
@@ -41,6 +42,7 @@ function read_args {
 	while true ; do
 		case $1 in
 			-a|--azerty)        W4MVM_KEYBOARD=azerty ;;
+			-d|--destroy)       DESTROY=yes ;;
 			-H|--halt)          HALT=yes ;;
 			-h|--help)          print_help ; exit 0 ;;
 			-n|--name)          W4MVM_NAME="$2" ; shift ;;
@@ -107,19 +109,21 @@ function wait_for_galaxy {
 read_args "$@"
 
 # Remove machine of the same name if it exists
-echo
-echo "****************************************************************"
-echo "Destroy existing machine ${W4MVM_NAME}"
-echo
-vagrant destroy -f ${W4MVM_NAME} || exit 1
-[[ -z $(VBoxManage list vms | grep '^"'${W4MVM_NAME}'"') ]] || VBoxManage unregistervm --delete ${W4MVM_NAME} || exit 1
+if [[ $DESTROY == yes ]] ; then
+	echo
+	echo "****************************************************************"
+	echo "Destroy existing machine ${W4MVM_NAME}"
+	echo
+	vagrant destroy -f ${W4MVM_NAME} || exit 1
+	[[ -z $(VBoxManage list vms | grep '^"'${W4MVM_NAME}'"') ]] || VBoxManage unregistervm --delete ${W4MVM_NAME} || exit 1
+fi
 
 # Build and start machine
 echo
 echo "****************************************************************"
 echo "Build and start machine ${W4MVM_NAME}"
 echo
-vagrant up ${W4MVM_NAME} || exit 1
+vagrant up --provision ${W4MVM_NAME} || exit 1
 
 # Wait for Galaxy
 [[ $WAIT == yes || $HALT == yes ]] && wait_for_galaxy

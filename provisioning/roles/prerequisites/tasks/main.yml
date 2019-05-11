@@ -1,0 +1,24 @@
+- name: Update package database
+  apt: update_cache=yes
+  when: ansible_facts['os_family'] == "Debian"
+  become: yes
+  
+- name: Install Git
+  package: name=git state=latest
+  become: yes
+  
+- name: Install Make
+  package: name=make state=latest
+  become: yes
+ 
+- name: Install Python virtualenv
+  package: name=python-virtualenv state=latest
+  become: yes
+ 
+- name: Install M4
+  package: name=m4 state=latest
+  become: yes
+ 
+- name: Install Unzip
+  package: name=unzip state=latest
+  become: yes

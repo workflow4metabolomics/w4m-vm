@@ -1,0 +1,10 @@
+[Unit]
+Description=Galaxy service
+
+[Service]
+Type=forking
+ExecStart=/home/vagrant/galaxy/run.sh --daemon --log-file=/home/vagrant/galaxy/paster.log --pid-file=/home/vagrant/galaxy/paster.pid
+ExecStop=/home/vagrant/galaxy/run.sh --stop-daemon
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,3 @@
-[submodule "roles/ansible-galaxy"]
-	path = roles/ansible-galaxy
-	url = https://github.com/galaxyproject/ansible-galaxy.git
-	branch = master
 [submodule "roles/ansible-galaxy-tools"]
 	path = roles/ansible-galaxy-tools
 	url = https://github.com/galaxyproject/ansible-galaxy-tools.git

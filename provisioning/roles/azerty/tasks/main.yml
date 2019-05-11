@@ -1,0 +1,6 @@
+- name: Set azerty keyboard (only enabled on reboot)
+  lineinfile:
+      path: /etc/default/keyboard
+      regexp: '^XKBLAYOUT=.*$'
+      line: 'XKBLAYOUT="fr"'
+  become: yes

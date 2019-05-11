@@ -71,47 +71,6 @@ def get_tool_names(tools_list)
   return tools
 end
 
-# Set keyboard layout {{{1
-################################################################
-
-def set_keyboard_layout(config)
-  
-  restart_required = false
-  
-  keyboard = "qwerty"
-  if ! ENV['W4MVM_KEYBOARD'].nil? and ! ENV['W4MVM_KEYBOARD'].empty?
-    keyboard = ENV['W4MVM_KEYBOARD']
-  end
-  message(config: config, msg: "Setting keyboard as #{keyboard}.", provision: true)
-  if keyboard != 'qwerty'
-    config.vm.provision :shell, privileged: true, inline: "sed -i -e 's/^exit 0/loadkeys fr ; &/' /etc/rc.local"
-    restart_required = true
-  end
-  
-  return restart_required
-end
-
-# Install Galaxy {{{1
-################################################################
-
-def install_galaxy(config)
-  
-  message(config: config, msg: "Installing Galaxy.", provision: true)
-  
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "galaxyserver.yml" 
-  end
-  config.vm.provision "file", source: "w4m-config/config/tool_conf.xml", destination: "galaxy/config/tool_conf.xml"
-  config.vm.provision "file", source: "w4m-config/config/tool_sheds_conf.xml", destination: "galaxy/config/tool_sheds_conf.xml"
-  config.vm.provision "file", source: "w4m-config/config/dependency_resolvers_conf.xml", destination: "galaxy/config/dependency_resolvers_conf.xml"
-  config.vm.provision "file", source: "w4m-config/static/welcome.html", destination: "galaxy/static/welcome.html"
-  config.vm.provision "file", source: "w4m-config/static/W4M", destination: "galaxy/static/W4M"
-  config.vm.provision "file", source: "galaxy_service.sh", destination: "galaxy_service.sh"
-  for runlevel in [2, 3, 5]
-    config.vm.provision :shell, privileged: true, inline: "cp galaxy_service.sh /etc/init.d/galaxy"
-    config.vm.provision :shell, privileged: true, inline: "ln -s ../init.d/galaxy /etc/rc#{runlevel}.d/S99galaxy"
-  end
-end
 
 # Install Galaxy tools {{{1
 ################################################################
@@ -199,55 +158,47 @@ def install_galaxy_tools(config)
   end
 end
 
+def create_vm(config:, name:)
+
+    config.vm.box = "ubuntu/bionic64"
+    config.vm.hostname = "w4m"
+
+    config.vm.provider :virtualbox do |vb|
+      vb.name = name
+      vb.memory = "2048"
+    end
+    config.vm.provision :ansible do |ansible|
+      ansible.extra_vars = {
+        ansible_python_interpreter: "python3"
+      }
+      ansible.playbook = "provisioning/playbook.yml"
+    end
+
+    # Network
+    config.vm.network :forwarded_port, guest: 8080, host: 8080
+
+    # Install Galaxy tools
+    install_galaxy_tools(config)
+end
+
 # MAIN {{{1
 ################################################################
 
 Vagrant.configure(2) do |config|
+  
+  config.vm.define 'w4mdev-azerty' do |w4mdev_azerty|
+    create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty') 
+  end
 
-  for vm_name in ['w4mdev-qwerty'] #, 'w4mdev-azerty', 'w4mprod-qwerty', 'w4mprod-azerty']
+  config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
+    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty') 
+  end
 
-    config.vm.define vm_name do |w4m|
-      
-      restart_required = false
-    
-      w4m.vm.box = "ubuntu/bionic64"
-      w4m.vm.hostname = "w4m"
-      
-      message(config: w4m, msg: envvar_enabled('W4MVM_SHOW') ? 'SHOW VIRTUAL MACHINE' : 'HIDE VIRTUAL MACHINE', provision: true)
-      w4m.vm.provider :virtualbox do |vb|
-        vb.name = vm_name
-        vb.memory = "2048"
-        vb.gui = envvar_enabled('W4MVM_SHOW')
-      end
-      w4m.vm.provision :ansible do |ansible|
-        ansible.extra_vars = {
-          ansible_python_interpreter: "python3"
-        }
-        ansible.playbook = "provisioning/playbook.yml"
-      end
+  config.vm.define 'w4mprod-azerty' do |w4mprod_azerty|
+    create_vm(config: w4mprod_azerty, name: 'w4mprod-azerty') 
+  end
 
-      # Network
-      w4m.vm.network :forwarded_port, guest: 8080, host: 8080
-
-      # Set keyboard layout
-      restart_required = set_keyboard_layout(w4m)
-     
-      # Install Galaxy
-    #  install_galaxy(w4m)
-
-      # Install Galaxy tools
-      install_galaxy_tools(w4m)
-
-      # Finalize
-      if restart_required
-        # Restart machine
-        w4m.vm.provision :shell, privileged: true, inline:"shutdown -r now"
-      else
-        # Start galaxy in daemon mode
-        message(config: w4m, msg: "START GALAXY IN DAEMON MODE", provision: true)
-#        w4m.vm.provision :shell, privileged: true, inline:"service galaxy start"
-      end
-
-    end
+  config.vm.define 'w4mprod-qwerty' do |w4mprod_qwerty|
+    create_vm(config: w4mprod_qwerty, name: 'w4mprod-qwerty') 
   end
 end

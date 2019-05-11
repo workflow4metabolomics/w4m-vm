@@ -4,8 +4,6 @@
 # Constants {{{1
 ################################################################
 
-export W4MVM_KEYBOARD=qwerty
-export W4MVM_SHOW=no
 export W4MVM_VERSION=dev
 export W4MVM_TOOLS=all
 W4MVM_NAME=
@@ -22,12 +20,11 @@ function print_help {
 	echo "Builds the W4M virtual machine."
 	echo
 	echo "Options:"
-	echo "   -a, --azerty         Set AZERTY keyboard. The default keyboard is QWERTY."
+	echo "   -d, --destroy        Destroy first the existing machine."
 	echo "   -H, --halt           Halt the machine after building it."
 	echo "   -h, --help           Print this help message."
 	echo "   -n, --name           Set the name of the virtual machine. If unset, Vagrant will set a semi-random name itself."
 	echo "   -p, --prod           Builds a production machine, using official released versions of tools. By default the branch used for developing is used to extract tool code."
-	echo "   -s, --show           Show VM screen. By default it is hidden."
 	echo "   -w, --wait           Wait for Galaxy to be up."
 }
 
@@ -41,13 +38,11 @@ function read_args {
 	# Read options
 	while true ; do
 		case $1 in
-			-a|--azerty)        W4MVM_KEYBOARD=azerty ;;
 			-d|--destroy)       DESTROY=yes ;;
 			-H|--halt)          HALT=yes ;;
 			-h|--help)          print_help ; exit 0 ;;
 			-n|--name)          W4MVM_NAME="$2" ; shift ;;
 			-p|--prod)          W4MVM_VERSION=prod ;;
-			-s|--show)          W4MVM_SHOW=yes ;;
 			-t|--tool)          W4MVM_TOOLS="$2" ; shift ;;
 			-w|--wait)          WAIT=yes ;;
 			-) error "Illegal option $1." ;;

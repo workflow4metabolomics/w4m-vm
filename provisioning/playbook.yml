@@ -1,3 +1,7 @@
+- hosts: w4mdev-azerty w4mprod-azerty
+  roles:
+      - azerty
+
 - hosts: all
   vars:
     galaxy_server_dir: "/home/vagrant/galaxy"

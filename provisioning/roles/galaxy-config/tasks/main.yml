@@ -13,10 +13,3 @@
       src: ../galaxy.service
       dest: "/etc/systemd/user"
   become: yes
-  
-- name: Enable and start Galaxy service
-  systemd:
-      name: galaxy.service
-      enabled: yes
-      state: started
-      scope: user

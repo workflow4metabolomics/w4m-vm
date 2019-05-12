@@ -12,10 +12,9 @@
     galaxy_fetch_eggs: yes
     galaxy_manage_static_setup: yes
     galaxy_manage_mutable_setup: no
-    galaxy_manage_database: no
+    galaxy_manage_database: yes
     galaxy_changeset_id: release_18.09
     galaxy_force_checkout: yes
-    #    galaxy_restart_handler_name: "systemctl --user enable --now galaxy.service"
     galaxy_config:
       "server:main":
         "host": "0.0.0.0"
@@ -33,3 +32,6 @@
     - prerequisites
     - galaxy
     - galaxy-config
+  tasks:
+      - name: Enable and start Galaxy service
+        command: "systemctl --user enable --now galaxy.service"

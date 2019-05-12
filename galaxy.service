@@ -4,9 +4,9 @@ Description=Galaxy service
 [Service]
 #Type=forking
 Type=oneshot
+RemainAfterExit=true
 ExecStart=/home/vagrant/galaxy/run.sh --daemon
 ExecStop=/home/vagrant/galaxy/run.sh --stop-daemon
-RemainAfterExit=yes
 
-[Install]
-WantedBy=multi-user.target
+#[Install]
+#WantedBy=multi-user.target

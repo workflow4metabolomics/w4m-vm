@@ -12,3 +12,9 @@
 [submodule "provisioning/roles/galaxy"]
 	path = provisioning/roles/galaxy
 	url = https://github.com/galaxyproject/ansible-galaxy.git
+[submodule "provisioning/roles/supervisor"]
+	path = provisioning/roles/supervisor
+	url = https://github.com/geerlingguy/ansible-role-supervisor
+[submodule "provisioning/roles/pip"]
+	path = provisioning/roles/pip
+	url = https://github.com/geerlingguy/ansible-role-pip

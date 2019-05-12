@@ -1,24 +1,29 @@
-- name: Update package database
-  apt: update_cache=yes
-  when: ansible_facts['os_family'] == "Debian"
-  become: yes
-  
-- name: Install Git
-  package: name=git state=latest
-  become: yes
-  
-- name: Install Make
-  package: name=make state=latest
-  become: yes
- 
-- name: Install Python virtualenv
-  package: name=python-virtualenv state=latest
-  become: yes
- 
-- name: Install M4
-  package: name=m4 state=latest
-  become: yes
- 
-- name: Install Unzip
-  package: name=unzip state=latest
+- name: Manage Galaxy database
+  block:
+
+    - name: Update package database
+      apt: update_cache=yes
+      when: ansible_facts['os_family'] == "Debian"
+      
+      #    - name: Install Supervisor
+      #      package: name=supervisor state=latest
+      
+      #    - name: Install Pip3
+      #      package: name=python3-pip state=latest
+      
+    - name: Install Git
+      package: name=git state=latest
+      
+    - name: Install Make
+      package: name=make state=latest
+     
+    - name: Install Python virtualenv
+      package: name=python-virtualenv state=latest
+     
+    - name: Install M4
+      package: name=m4 state=latest
+     
+    - name: Install Unzip
+      package: name=unzip state=latest
+      
   become: yes

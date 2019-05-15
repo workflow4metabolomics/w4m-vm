@@ -158,7 +158,10 @@ def install_galaxy_tools(config)
   end
 end
 
-def create_vm(config:, name:)
+# Create VM {{{1
+################################################################
+
+def create_vm(config:, name:, port: 8080)
 
     config.vm.box = "ubuntu/bionic64"
     config.vm.hostname = "w4m"
@@ -175,7 +178,7 @@ def create_vm(config:, name:)
     end
 
     # Network
-    config.vm.network :forwarded_port, guest: 8080, host: 8080
+    config.vm.network :forwarded_port, guest: 8080, host: port
 
     # Install Galaxy tools
     install_galaxy_tools(config)
@@ -187,18 +190,18 @@ end
 Vagrant.configure(2) do |config|
   
   config.vm.define 'w4mdev-azerty' do |w4mdev_azerty|
-    create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty') 
+    create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty', port: 8082) 
   end
 
   config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
-    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty') 
+    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty', port: 8083) 
   end
 
   config.vm.define 'w4mprod-azerty' do |w4mprod_azerty|
-    create_vm(config: w4mprod_azerty, name: 'w4mprod-azerty') 
+    create_vm(config: w4mprod_azerty, name: 'w4mprod-azerty', port: 8080) 
   end
 
   config.vm.define 'w4mprod-qwerty' do |w4mprod_qwerty|
-    create_vm(config: w4mprod_qwerty, name: 'w4mprod-qwerty') 
+    create_vm(config: w4mprod_qwerty, name: 'w4mprod-qwerty', port: 8081) 
   end
 end

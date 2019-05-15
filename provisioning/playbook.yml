@@ -7,7 +7,7 @@
     supervisor_socket_user: galaxy
     supervisor_socket_chown: galaxy
     galaxy_user: vagrant
-    galaxy_restart_handler_name: Restart Galaxy
+    galaxy_restart_handler_name: Start Galaxy
     galaxy_server_dir: "/home/vagrant/galaxy"
     galaxy_config_dir: "{{ galaxy_server_dir }}/config"
     galaxy_mutable_config_dir: "{{ galaxy_config_dir }}"
@@ -21,6 +21,7 @@
     galaxy_manage_database: yes
     galaxy_changeset_id: release_18.09
     galaxy_force_checkout: yes
+    galaxy_config_style: 'yaml' # TODO to try
     galaxy_config:
       "server:main":
         "host": "0.0.0.0"
@@ -36,32 +37,34 @@
         dependency_resolvers_config_file: "{{ galaxy_config_dir }}/dependency_resolvers_conf.xml"
   roles:
     - prerequisites
-    - name: pip
-      pip_package: python3-pip
-      become: yes
+      #    - name: pip
+      #      pip_package: python3-pip
+      #      become: yes
     - galaxy
     - galaxy-config
-    - name: supervisor
-      supervisor_programs:
-        - name: galaxy
-          state: present
-          command: uwsgi --ini {{ galaxy_config_dir }}/galaxy.ini
-          configuration: |
-            autostart=true
-            autorestart=true
-            startretries=1
-            startsecs=10
-            user={{ galaxy_user }}
-            umask=022
-            directory={{ galaxy_server_dir }}
-            environment=HOME={{ galaxy_mutable_data_dir }},VIRTUAL_ENV={{ galaxy_venv_dir }},PATH={{ galaxy_venv_dir }}/bin:%(ENV_PATH)s
-      become: yes
+      #    - name: supervisor
+      #      supervisor_programs:
+      #        - name: galaxy
+      #          state: present
+      #          command: uwsgi --ini {{ galaxy_config_dir }}/galaxy.ini
+      #          configuration: |
+      #            autostart=true
+      #            autorestart=true
+      #            startretries=1
+      #            startsecs=10
+      #            user={{ galaxy_user }}
+      #            umask=022
+      #            directory={{ galaxy_server_dir }}
+      #            environment=HOME={{ galaxy_mutable_data_dir }},VIRTUAL_ENV={{ galaxy_venv_dir }},PATH={{ galaxy_venv_dir }}/bin:%(ENV_PATH)s
+      #      become: yes
   handlers:
-    - name: Restart Galaxy
-      supervisorctl:
-        name: galaxy
-        state: restarted
+    - name: Start Galaxy
+      #      command: "systemctl start --now galaxy.service"
+      systemd:
+        name: galaxy.service
+        state: started
       become: yes
+      
         #  tasks:
         #      - name: Enable and start Galaxy service
         #        command: "systemctl --user enable --now galaxy.service"

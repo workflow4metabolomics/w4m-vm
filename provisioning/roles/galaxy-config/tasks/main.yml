@@ -8,15 +8,15 @@
       src: ../w4m-config/static/
       dest: "{{ galaxy_server_dir }}/static"
  
-      #- name: Install Galaxy service script
-      #  copy:
-      #      src: ../galaxy.service
-      #      dest: "/etc/systemd/user"
-      #  become: yes
+- name: Install Galaxy systemd service script
+  copy:
+      src: ../galaxy.service
+      dest: "/etc/systemd/system"
+      mode: "a+r"
+  become: yes
   
-  #- name: Enable and start Galaxy service
-  #  systemd:
-  #      name: galaxy.service
-  #      enabled: yes
-  #      state: started
-  #      scope: user
+- name: Enable Galaxy systemd service
+  systemd:
+      name: galaxy.service
+      enabled: yes
+  become: yes

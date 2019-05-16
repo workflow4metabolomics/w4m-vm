@@ -1,3 +1,10 @@
+# Load variables
+- hosts: all
+  tasks:
+    - include_vars: "vars/debian.yml"
+    - include_vars: "vars/{{ ansible_os_family | lower }}.yml"
+      ignore_errors: yes
+
 - hosts: w4mdev-azerty w4mprod-azerty
   roles:
       - azerty
@@ -59,9 +66,9 @@
       #      become: yes
   handlers:
     - name: Start Galaxy
-      #      command: "systemctl start --now galaxy.service"
-      systemd:
-        name: galaxy.service
+      #      command: "systemctl start --now {{ glx_srv_name }}"
+      service:
+        name: "{{ glx_srv_name }}"
         state: started
       become: yes
       

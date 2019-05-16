@@ -1,0 +1,5 @@
+py2_venv_pkg: python-virtualenv
+py3_venv_pkg: python3-virtualenv
+glx_srv_script: glx_systemd_script
+glx_srv_name: galaxy.service
+glx_srv_script_dst: "/etc/systemd/system/{{ glx_srv_name }}"

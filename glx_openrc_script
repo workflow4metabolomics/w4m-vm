@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+# Galaxy OpenRC service script
+
+name=$RC_SVCNAME
+#cfgfile="/etc/$RC_SVCNAME/$RC_SVCNAME.conf"
+command="/home/vagrant/$RC_SVCNAME/run.sh"
+command_args="--daemon"
+command_user="vagrant"
+pidfile="/home/vagrant/$RC_SVCNAME/$RC_SVCNAME.pid"
+start_stop_daemon_args="--stop-daemon"
+command_background="yes"
+
+depend() {
+	        need net
+}
+
+start_pre() {
+	        checkpath --directory --owner $command_user:$command_user --mode 0775 \
+		                        /home/vagrant/$RC_SVCNAME/run.sh
+}

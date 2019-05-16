@@ -1,9 +1,13 @@
 - name: Manage Galaxy database
   block:
 
-    - name: Update package database
+    - name: Update Debian package database
       apt: update_cache=yes
       when: ansible_facts['os_family'] == "Debian"
+
+    - name: Update ArchLinux package database
+      pacman: update_cache=yes
+      when: ansible_facts['os_family'] == "Archlinux"
       
       #    - name: Install Supervisor
       #      package: name=supervisor state=latest
@@ -17,13 +21,45 @@
     - name: Install Make
       package: name=make state=latest
      
-    - name: Install Python virtualenv
-      package: name=python-virtualenv state=latest
+    - name: Install Python 2 virtualenv
+      package: name={{ py2_venv_pkg }} state=latest
      
-    - name: Install M4
-      package: name=m4 state=latest
+    - name: Install Python 2 setuptools # For PIP
+      package: name={{ py2_setuptools_pkg }} state=latest
+      when: py2_setuptools_pkg is defined
+
+    - name: Install GCC
+      package: name={{ gcc_pkg}} state=latest
+      when: gcc_pkg is defined
+     
+    - name: Install libc
+      package: name={{ libc_pkg }} state=latest
+      when: libc_pkg is defined
+     
+    - name: Install libffi dev
+      package: name={{ libffi_dev_pkg }} state=latest
+      when: libffi_dev_pkg is defined
+     
+    - name: Install Open SSL dev
+      package: name={{ openssl_dev_pkg }} state=latest
+      when: openssl_dev_pkg is defined
+     
+    - name: Install Linux headers
+      package: name={{ linux_headers_pkg }} state=latest
+      when: linux_headers_pkg is defined
+     
+    - name: Install HDF5 dev pkg
+      package: name={{ hdf5_dev_pkg }} state=latest
+      when: hdf5_dev_pkg is defined
      
     - name: Install Unzip
       package: name=unzip state=latest
+
+    - name: Install M4
+      package: name=m4 state=latest
+     
+    - name: Install Python dev
+      package: name={{ py2_dev_pkg }} state=latest
+      when: py2_dev_pkg is defined
       
   become: yes

@@ -1,0 +1,12 @@
+py3_venv_pkg: py3-virtualenv
+py2_venv_pkg: py-virtualenv
+py2_dev_pkg: python2-dev
+libc_pkg: musl-dev
+libffi_dev_pkg: libffi-dev
+glx_srv_script: glx_openrc_script
+glx_srv_name: galaxy
+glx_srv_script_dst: "/etc/initd/{{ glx_srv_name }}"
+openssl_dev_pkg: openssl-dev
+linux_headers_pkg: linux-headers
+hdf5_dev_pkg: hdf5-dev@testing
+gcc_pkg: gcc

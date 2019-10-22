@@ -189,9 +189,10 @@ end
 
 Vagrant.configure(2) do |config|
 
-  config.vagrant.plugins = "vagrant-alpine" # For setting hostname on alpine
+#  config.vagrant.plugins = "vagrant-alpine" # For setting hostname on alpine
 
-    config.vm.box = "archlinux/archlinux"
+#    config.vm.box = "archlinux/archlinux"
+    config.vm.box = "ubuntu/bionic64"
 #    config.vm.guest = :alpine # Needed to set hostname. Inside the box generic/alpine38, the guest is set to "alt" (which is wrong).
     config.vm.hostname = "w4m"
 
@@ -199,24 +200,25 @@ Vagrant.configure(2) do |config|
       vb.name = "try"
       vb.memory = "2048"
     end
-#    config.vm.provision "Package database update.", type: "shell", privileged: true, inline: "apt update"
-#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apt install -y python3" # Needed by Ansible
-#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apk add python" # Needed by Ansible
-    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "pacman --noconfirm -S python2" # Needed by Ansible
-    config.vm.provision :ansible do |ansible|
-      ansible.extra_vars = {
-        ansible_python_interpreter: "python2"
-      }
-      ansible.playbook = "provisioning/playbook.yml"
-    end
 
     # Network
     config.vm.network :forwarded_port, guest: 8080, host: 8080
-    
+
+#    config.vm.provision "Package database update.", type: "shell", privileged: true, inline: "apt update"
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apt install -y python3" # Needed by Ansible
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apk add python" # Needed by Ansible
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "pacman --noconfirm -S python2" # Needed by Ansible
+    config.vm.provision :ansible do |ansible|
+#      ansible.extra_vars = {
+#        ansible_python_interpreter: "python2"
+#      }
+      ansible.playbook = "provisioning/playbook.yml"
+    end
+
 #  config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
 #    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty', port: 8080) 
 #  end
-  
+
 #  config.vm.define 'w4mdev-azerty' do |w4mdev_azerty|
 #    create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty', port: 8082) 
 #  end

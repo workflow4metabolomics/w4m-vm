@@ -13,20 +13,20 @@ end
 # Message {{{1
 ################################################################
 
-def message(msg:, config: nil, provision: false)
-
-  # Print now
-  if provision
-    puts "[PROVISIONING] #{msg}"
-  else
-    puts "[INFO] #{msg}"
-  end
-
-  # Print when provisioning
-  if provision and not config.nil?
-    config.vm.provision "shell", privileged: false, inline: "echo \"---------------- W4M VM ---------------- #{msg}\""
-  end
-end
+# def message(msg:, config: nil, provision: false)
+# 
+#   # Print now
+#   if provision
+#     puts "[PROVISIONING] #{msg}"
+#   else
+#     puts "[INFO] #{msg}"
+#   end
+# 
+#   # Print when provisioning
+#   if provision and not config.nil?
+#     config.vm.provision "shell", privileged: false, inline: "echo \"---------------- W4M VM ---------------- #{msg}\""
+#   end
+# end
 
 # Load tools list {{{1
 ################################################################
@@ -34,7 +34,7 @@ end
 def load_tools_list()
   
   tools_list_file = "w4m-config/tool_list.yaml"
-  message(msg: "LOAD tools list #{tools_list_file}")
+#  message(msg: "LOAD tools list #{tools_list_file}")
   tools_list = YAML.load_file(tools_list_file)
   
   return tools_list
@@ -61,10 +61,10 @@ def get_tool_names(tools_list)
     name = tool['name']
       
     if tool.key?('github')
-      message(msg:"Loading information for tool #{name}.")
+#      message(msg:"Loading information for tool #{name}.")
       tools.push(name)
     else
-      message(msg:"CAUTION no GitHub repository for tool #{name}. This tool is impossible to install.")
+#      message(msg:"CAUTION no GitHub repository for tool #{name}. This tool is impossible to install.")
     end
   end
   
@@ -75,23 +75,18 @@ end
 # Install Galaxy tools {{{1
 ################################################################
 
-def install_galaxy_tools(config)
+def install_galaxy_tools(config, version:'dev')
   if ENV['W4MVM_TOOLS'].nil? or ENV['W4MVM_TOOLS'] == ''
-    message(config: config, msg: "NO TOOLS INSTALLATION", provision: true)
+#    message(config: config, msg: "NO TOOLS INSTALLATION", provision: true)
   else
     
     # Install requirements
-    message(config: config, msg: "INSTALL xmlstarlet", provision: true)
+#    message(config: config, msg: "INSTALL xmlstarlet", provision: true)
     config.vm.provision "shell", privileged: true, inline: "apt-get install -y xmlstarlet"
     
     # Set branch
-    if ENV['W4MVM_VERSION'].nil?
-      version='dev'
-    else
-      version=ENV['W4MVM_VERSION']
-      if version != 'dev' and version != 'prod'
-        abort("Unknown version '#{version}' for tools.")
-      end
+    if version != 'dev' and version != 'prod'
+      abort("Unknown version '#{version}' for tools.")
     end
     
     # Load tools list
@@ -100,11 +95,11 @@ def install_galaxy_tools(config)
     # Set tools list
     tools = []
     if ENV['W4MVM_TOOLS'] == 'all'
-      message(config: config, msg: "INSTALLATION OF ALL TOOLS", provision: true)
+#      message(config: config, msg: "INSTALLATION OF ALL TOOLS", provision: true)
       tools = get_tool_names(tools_list)
     else
       tools = ENV['W4MVM_TOOLS']
-      message(config: config, msg: "INSTALLATION OF TOOLS #{tools}", provision: true)
+#      message(config: config, msg: "INSTALLATION OF TOOLS #{tools}", provision: true)
       tools = tools.split(/ +/)
       all_tools = get_tool_names(tools_list)
       
@@ -131,7 +126,7 @@ def install_galaxy_tools(config)
           abort("No GitHub repository specified for tool #{name}.")
         end
         repos = tool['github']['repos']
-        message(config: config, msg: "Install version #{version} (branch/tag #{branch}) of tool #{name}.", provision: true)
+#        message(config: config, msg: "Install version #{version} (branch/tag #{branch}) of tool #{name}.", provision: true)
         config.vm.provision "shell", privileged: false, inline: "git clone -b #{branch} #{repos} galaxy/tools/#{name}"
         
         # Edit tool conf file
@@ -150,7 +145,7 @@ def install_galaxy_tools(config)
         
         # Enable HTML output rendering
         if tool.key?('html_output') and tool['html_output']
-          message(config: config, msg: "Allow rendering of HTML for tool #{name}.", provision: true)
+#          message(config: config, msg: "Allow rendering of HTML for tool #{name}.", provision: true)
           config.vm.provision "shell", privileged: false, inline: "echo #{name} >> galaxy/config/sanitize_whitelist.txt"
         end
       end
@@ -161,15 +156,22 @@ end
 # Create VM {{{1
 ################################################################
 
-def create_vm(config:, name:, port: 8080)
+def create_vm(config:, name:, port:8080, version:'dev')
 
     config.vm.box = "ubuntu/bionic64"
+#    config.vm.box = "generic/ubuntu1804"
+#     #    config.vm.box = "archlinux/archlinux"
+#     #    config.vm.guest = :alpine # Needed to set hostname. Inside the box generic/alpine38, the guest is set to "alt" (which is wrong).
     config.vm.hostname = "w4m"
 
     config.vm.provider :virtualbox do |vb|
       vb.name = name
       vb.memory = "2048"
     end
+#    config.vm.provision "Package database update.", type: "shell", privileged: true, inline: "apt update"
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apt install -y python3" # Needed by Ansible
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apk add python" # Needed by Ansible
+#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "pacman --noconfirm -S python2" # Needed by Ansible
     config.vm.provision :ansible do |ansible|
       ansible.extra_vars = {
         ansible_python_interpreter: "python3"
@@ -181,7 +183,7 @@ def create_vm(config:, name:, port: 8080)
     config.vm.network :forwarded_port, guest: 8080, host: port
 
     # Install Galaxy tools
-    install_galaxy_tools(config)
+    install_galaxy_tools(config, version: version)
 end
 
 # MAIN {{{1
@@ -191,47 +193,19 @@ Vagrant.configure(2) do |config|
 
 #  config.vagrant.plugins = "vagrant-alpine" # For setting hostname on alpine
 
-#    config.vm.box = "archlinux/archlinux"
-    config.vm.box = "ubuntu/bionic64"
-#    config.vm.guest = :alpine # Needed to set hostname. Inside the box generic/alpine38, the guest is set to "alt" (which is wrong).
-    config.vm.hostname = "w4m"
+config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
+  create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty')
+end
 
-    config.vm.provider :virtualbox do |vb|
-      vb.name = "try"
-      vb.memory = "2048"
-    end
+config.vm.define 'w4mdev-azerty' do |w4mdev_azerty|
+  create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty')
+end
 
-    # Network
-    config.vm.network :forwarded_port, guest: 8080, host: 8080
+config.vm.define 'w4mprod-azerty' do |w4mprod_azerty|
+  create_vm(config: w4mprod_azerty, name: 'w4mprod-azerty', version:'prod')
+end
 
-#    config.vm.provision "Package database update.", type: "shell", privileged: true, inline: "apt update"
-#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apt install -y python3" # Needed by Ansible
-#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "apk add python" # Needed by Ansible
-#    config.vm.provision "Install Python.", type: "shell", privileged: true, inline: "pacman --noconfirm -S python2" # Needed by Ansible
-    config.vm.provision :ansible do |ansible|
-#      ansible.extra_vars = {
-#        ansible_python_interpreter: "python2"
-#      }
-      ansible.playbook = "provisioning/playbook.yml"
-    end
-
-#  config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
-#    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty', port: 8080) 
-#  end
-
-#  config.vm.define 'w4mdev-azerty' do |w4mdev_azerty|
-#    create_vm(config: w4mdev_azerty, name: 'w4mdev-azerty', port: 8082) 
-#  end
-#
-#  config.vm.define 'w4mdev-qwerty' do |w4mdev_qwerty|
-#    create_vm(config: w4mdev_qwerty, name: 'w4mdev-qwerty', port: 8083) 
-#  end
-#
-#  config.vm.define 'w4mprod-azerty' do |w4mprod_azerty|
-#    create_vm(config: w4mprod_azerty, name: 'w4mprod-azerty', port: 8080) 
-#  end
-#
-#  config.vm.define 'w4mprod-qwerty' do |w4mprod_qwerty|
-#    create_vm(config: w4mprod_qwerty, name: 'w4mprod-qwerty', port: 8081) 
-#  end
+config.vm.define 'w4mprod-qwerty' do |w4mprod_qwerty|
+  create_vm(config: w4mprod_qwerty, name: 'w4mprod-qwerty', version:'prod')
+end
 end

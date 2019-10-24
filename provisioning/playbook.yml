@@ -26,18 +26,20 @@
     galaxy_manage_static_setup: yes
     galaxy_manage_mutable_setup: no
     galaxy_manage_database: yes
-    galaxy_changeset_id: release_18.09
+    galaxy_changeset_id: release_19.05
     galaxy_force_checkout: yes
     galaxy_uwsgi_config_default:
       http: 0.0.0.0:8080 # Needed otherwise Galaxy server will not be accessible from outside the virtual machine.
     galaxy_config_style: 'yaml' # TODO to try
+    galaxy_tool_config_files:
+      - "{{ galaxy_config_dir }}/tool_conf.xml"
+      - "{{ galaxy_shed_tool_conf_file }}"
     galaxy_config:
       "server:main":
           port: 8080
           host: "0.0.0.0"
       "app:main":
         job_working_directory: "{{ galaxy_config_dir }}/job_working_directory"
-        tool_config_file: "{{ galaxy_config_dir }}/tool_conf.xml,{{ galaxy_shed_tool_conf_file }}"
         tool_sheds_config_file: "{{ galaxy_config_dir }}/tool_sheds_conf.xml"
         master_api_key: "admin"
 #        tool_dependency_dir: "/deps"

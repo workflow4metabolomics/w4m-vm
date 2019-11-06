@@ -1,5 +1,5 @@
 [submodule "roles/ansible-galaxy-tools"]
-	path = roles/ansible-galaxy-tools
+	path = provisioning/roles/galaxy-tools
 	url = https://github.com/galaxyproject/ansible-galaxy-tools.git
 	branch = master
 [submodule "galaxy_utils"]

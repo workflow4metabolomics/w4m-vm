@@ -2,18 +2,18 @@
   copy:
       src: ../w4m-config/config/
       dest: "{{ galaxy_config_dir }}"
-  
+
 - name: Copy Galaxy static files
   copy:
       src: ../w4m-config/static/
       dest: "{{ galaxy_server_dir }}/static"
- 
+
 - name: Install Galaxy service script
   copy:
       src: "../{{ glx_srv_script }}"
       dest: "{{ glx_srv_script_dst }}"
   become: yes
- 
+
 - name: Enable Galaxy service
   command: "systemctl enable {{ glx_srv_name }}"
   #  service:

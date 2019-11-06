@@ -183,7 +183,9 @@ def create_vm(config:, name:, port:8080, version:'dev')
     config.vm.network :forwarded_port, guest: 8080, host: port
 
     # Install Galaxy tools
-    install_galaxy_tools(config, version: version)
+    if version != 'prod'
+      install_galaxy_tools(config, version: version)
+    end
 end
 
 # MAIN {{{1
